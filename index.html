@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pass & Play Chess — Wooden Edition</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <div class="status-bar">
+    <div class="turn-indicator">
+      <span class="turn-swatch" id="turnSwatch"></span>
+      <span id="statusText">White to Move</span>
+      <span class="alert-badge" id="alertBadge">Check!</span>
+    </div>
+    <div class="controls">
+      <button id="undoBtn" title="Undo last move">Undo</button>
+      <button class="primary" id="newGameBtn">New Game</button>
+    </div>
+  </div>
+
+  <div class="board-wrapper" id="boardWrapper">
+    <div class="coords-files top" id="filesTop"></div>
+    <div class="coords-files bottom" id="filesBottom"></div>
+    <div class="coords-ranks left" id="ranksLeft"></div>
+    <div class="coords-ranks right" id="ranksRight"></div>
+    <div class="board" id="board"></div>
+  </div>
+
+  <div class="promo-overlay" id="promoOverlay">
+    <div class="promo-box">
+      <h3>Promote Pawn To</h3>
+      <div class="promo-choices" id="promoChoices"></div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
