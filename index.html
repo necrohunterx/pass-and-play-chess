@@ -3,31 +3,226 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Pass & Play Chess — Wooden Edition</title>
+  <title>Pass &amp; Play Chess — Custom Edition</title>
   <link rel="stylesheet" href="style.css" />
 </head>
-<body>
+<body data-theme="walnut" data-pieces="neo">
 
-  <div class="status-bar">
-    <div class="turn-indicator">
-      <span class="turn-swatch" id="turnSwatch"></span>
-      <span id="statusText">White to Move</span>
-      <span class="alert-badge" id="alertBadge">Check!</span>
-    </div>
-    <div class="controls">
-      <button id="undoBtn" title="Undo last move">Undo</button>
-      <button class="primary" id="newGameBtn">New Game</button>
-    </div>
-  </div>
+  <!-- Shared Dynamic SVG Piece Gradients (Controlled by CSS Variables) -->
+  <svg width="0" height="0" style="position:absolute;pointer-events:none;" aria-hidden="true">
+    <defs>
+      <linearGradient id="wPieceGrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" style="stop-color: var(--w-piece-top)" />
+        <stop offset="100%" style="stop-color: var(--w-piece-bot)" />
+      </linearGradient>
+      <linearGradient id="bPieceGrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" style="stop-color: var(--b-piece-top)" />
+        <stop offset="100%" style="stop-color: var(--b-piece-bot)" />
+      </linearGradient>
+    </defs>
+  </svg>
 
-  <div class="board-wrapper" id="boardWrapper">
-    <div class="coords-files top" id="filesTop"></div>
-    <div class="coords-files bottom" id="filesBottom"></div>
-    <div class="coords-ranks left" id="ranksLeft"></div>
-    <div class="coords-ranks right" id="ranksRight"></div>
-    <div class="board" id="board"></div>
-  </div>
+  <main class="app-layout">
+    <!-- Left / Center: Larger Board + Player Clock Bars -->
+    <section class="board-column" id="boardColumn">
 
+      <!-- Black Player Bar -->
+      <div class="player-bar black-bar" id="blackCard">
+        <div class="player-info">
+          <div class="avatar black-avatar">♚</div>
+          <div class="player-meta">
+            <div class="player-name-row">
+              <input
+                type="text"
+                id="blackNameInput"
+                class="player-name-input"
+                value="Black"
+                maxlength="22"
+                aria-label="Black player name"
+                title="Click to edit player name"
+              />
+              <span class="turn-pill" id="blackTurnPill">Turn</span>
+            </div>
+            <div class="captured-row">
+              <div class="captured-pieces" id="blackCaptured"></div>
+              <span class="material-adv" id="blackAdv"></span>
+            </div>
+          </div>
+        </div>
+        <div class="clock-box" id="blackClock">10:00</div>
+      </div>
+
+      <!-- Wooden / Themed Board Frame -->
+      <div class="board-wrapper" id="boardWrapper">
+        <div class="board-bevel">
+          <div class="board" id="board"></div>
+        </div>
+      </div>
+
+      <!-- White Player Bar -->
+      <div class="player-bar white-bar active-turn" id="whiteCard">
+        <div class="player-info">
+          <div class="avatar white-avatar">♔</div>
+          <div class="player-meta">
+            <div class="player-name-row">
+              <input
+                type="text"
+                id="whiteNameInput"
+                class="player-name-input"
+                value="White"
+                maxlength="22"
+                aria-label="White player name"
+                title="Click to edit player name"
+              />
+              <span class="turn-pill" id="whiteTurnPill">Turn</span>
+            </div>
+            <div class="captured-row">
+              <div class="captured-pieces" id="whiteCaptured"></div>
+              <span class="material-adv" id="whiteAdv"></span>
+            </div>
+          </div>
+        </div>
+        <div class="clock-box" id="whiteClock">10:00</div>
+      </div>
+
+    </section>
+
+    <!-- Right Sidebar: Mode, Themes, Sound Packs, Clock & History -->
+    <aside class="side-panel">
+      <div class="panel-header">
+        <div class="brand-title">
+          <span class="crown-icon">♛</span>
+          <div>
+            <h1>Pass &amp; Play Chess</h1>
+            <p class="subtitle">Local 2-Player • Play vs. Bot</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mode Switcher -->
+      <div class="mode-switcher">
+        <button id="modePassBtn" class="mode-btn active">👥 Pass &amp; Play</button>
+        <button id="modeBotBtn" class="mode-btn">🤖 Play vs. Bot</button>
+      </div>
+
+      <!-- Bot Configuration (Visible in Bot Mode) -->
+      <div class="bot-settings hidden" id="botSettings">
+        <div class="setting-row">
+          <label for="botLevelSelect">Skill</label>
+          <select id="botLevelSelect">
+            <option value="400">Beginner (400)</option>
+            <option value="800">Casual (800)</option>
+            <option value="1200" selected>Intermediate (1200)</option>
+            <option value="1600">Advanced (1600)</option>
+            <option value="2000">Master (2000+)</option>
+          </select>
+        </div>
+        <div class="setting-row">
+          <label for="botSideSelect">Play As</label>
+          <select id="botSideSelect">
+            <option value="w" selected>White</option>
+            <option value="b">Black</option>
+            <option value="random">Random</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Status Banner -->
+      <div class="status-banner" id="statusBanner">
+        <span class="status-dot" id="statusDot"></span>
+        <span id="statusText">White to Move</span>
+      </div>
+
+      <!-- Time Control Bar -->
+      <div class="timer-controls">
+        <label for="timeControlSelect">Clock</label>
+        <select id="timeControlSelect" title="Select Time Control">
+          <option value="60|0">1 min (Bullet)</option>
+          <option value="180|0">3 min (Blitz)</option>
+          <option value="180|2">3 | 2 (Blitz)</option>
+          <option value="300|0">5 min (Blitz)</option>
+          <option value="600|0" selected>10 min (Rapid)</option>
+          <option value="900|10">15 | 10 (Rapid)</option>
+          <option value="1200|0">20 min (Rapid)</option>
+          <option value="1200|10">20 | 10 (Rapid)</option>
+          <option value="0|0">Unlimited</option>
+        </select>
+        <button id="pauseBtn" class="icon-btn" title="Pause / Resume Clock">⏸</button>
+      </div>
+
+      <!-- One-Click Board & Piece Theme + Sound Pack Box -->
+      <div class="customization-box">
+        <div class="theme-picker-row">
+          <span class="custom-label">Board</span>
+          <div class="theme-swatches" id="themeButtons">
+            <button class="theme-chip active" data-theme="walnut" title="Classic Walnut">
+              <span class="swatch swatch-walnut"></span>Walnut
+            </button>
+            <button class="theme-chip" data-theme="green" title="Chess.com Tournament Green">
+              <span class="swatch swatch-green"></span>Green
+            </button>
+            <button class="theme-chip" data-theme="icy" title="Icy Blue">
+              <span class="swatch swatch-icy"></span>Icy
+            </button>
+            <button class="theme-chip" data-theme="slate" title="Dark Slate">
+              <span class="swatch swatch-slate"></span>Slate
+            </button>
+          </div>
+        </div>
+
+        <div class="dual-select-row">
+          <div class="mini-select">
+            <label for="pieceStyleSelect">Pieces</label>
+            <select id="pieceStyleSelect">
+              <option value="neo" selected>Neo Classic</option>
+              <option value="wood">Carved Wood</option>
+              <option value="jade">Ivory &amp; Jade</option>
+            </select>
+          </div>
+          <div class="mini-select">
+            <label for="soundPackSelect">Audio</label>
+            <select id="soundPackSelect">
+              <option value="wood" selected>Wood Pack</option>
+              <option value="crisp">Tournament</option>
+              <option value="synth">Soft Synth</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Algebraic Move History Log with Scrubbing -->
+      <div class="history-container">
+        <div class="history-header">
+          <span>#</span>
+          <span>White</span>
+          <span>Black</span>
+        </div>
+        <div class="move-list" id="moveList">
+          <div class="empty-history">Make a move to start the game</div>
+        </div>
+        <div class="history-nav">
+          <button id="histFirstBtn" class="nav-btn" title="Start position">⏮</button>
+          <button id="histPrevBtn" class="nav-btn" title="Previous move (Left Arrow)">◀</button>
+          <button id="histNextBtn" class="nav-btn" title="Next move (Right Arrow)">▶</button>
+          <button id="histLastBtn" class="nav-btn" title="Live position">⏭ Live</button>
+        </div>
+      </div>
+
+      <!-- Game Controls -->
+      <div class="action-grid">
+        <button id="undoBtn" title="Undo last move">↩ Undo</button>
+        <button id="copyPgnBtn" title="Copy PGN for Chess.com / Lichess analysis">📋 Copy PGN</button>
+        <button id="drawBtn" title="Offer or agree to a draw">🤝 Draw</button>
+        <button id="resignBtn" class="danger-btn" title="Resign current game">🏳 Resign</button>
+        <button id="flipToggleBtn" class="toggle-active" title="Toggle 180° Pass & Play rotation">🔄 Auto-Flip: On</button>
+        <button id="soundToggleBtn" class="toggle-active" title="Toggle board sounds">🔊 Sound: On</button>
+        <button id="rematchBtn" class="rematch-btn hidden">🔁 Swap Sides &amp; Rematch</button>
+        <button id="newGameBtn" class="primary">＋ New Game</button>
+      </div>
+    </aside>
+  </main>
+
+  <!-- Pawn Promotion Modal -->
   <div class="promo-overlay" id="promoOverlay">
     <div class="promo-box">
       <h3>Promote Pawn To</h3>
